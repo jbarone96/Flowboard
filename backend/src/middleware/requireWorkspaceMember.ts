@@ -29,7 +29,7 @@ export async function requireWorkspaceMember(
   next: NextFunction
 ) {
   try {
-    const workspaceId = req.params.workspaceId;
+    const workspaceId = req.params.workspaceId as string;
     if (!workspaceId) throw new AppError("Missing workspace id", 400);
 
     const membership = await prisma.workspaceMember.findUnique({

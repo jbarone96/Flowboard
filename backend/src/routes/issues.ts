@@ -8,9 +8,9 @@ import { emitToWorkspace } from "../socket";
 export const issuesRouter = Router({ mergeParams: true });
 
 // Every route in this file is mounted under /workspaces/:workspaceId/issues
-// and sits behind requireWorkspaceMember — see index.ts for the mount point.
-// That middleware is what guarantees every query below can safely trust
-// req.workspaceId as "a workspace this user actually belongs to."
+// and sits behind requireWorkspaceMember — see workspaces.ts for the mount
+// point. That middleware is what guarantees every query below can safely
+// trust req.workspaceId as "a workspace this user actually belongs to."
 
 issuesRouter.get("/", requireWorkspaceMember, async (req: WorkspaceScopedRequest, res, next) => {
   try {
@@ -75,6 +75,7 @@ const updateIssueSchema = z.object({
 
 issuesRouter.patch("/:issueId", requireWorkspaceMember, async (req: WorkspaceScopedRequest, res, next) => {
   try {
+    const issueId = req.params.issueId as string;
     const data = updateIssueSchema.parse(req.body);
 
     if (data.assigneeId) {
@@ -87,14 +88,14 @@ issuesRouter.patch("/:issueId", requireWorkspaceMember, async (req: WorkspaceSco
     // a different workspace, this matches zero rows instead of leaking a
     // cross-tenant write.
     const result = await prisma.issue.updateMany({
-      where: { id: req.params.issueId, workspaceId: req.workspaceId },
+      where: { id: issueId, workspaceId: req.workspaceId },
       data,
     });
 
     if (result.count === 0) throw new AppError("Issue not found", 404);
 
     const issue = await prisma.issue.findUnique({
-      where: { id: req.params.issueId },
+      where: { id: issueId },
       include: {
         assignee: { select: { id: true, name: true } },
         creator: { select: { id: true, name: true } },
@@ -110,13 +111,15 @@ issuesRouter.patch("/:issueId", requireWorkspaceMember, async (req: WorkspaceSco
 
 issuesRouter.delete("/:issueId", requireWorkspaceMember, async (req: WorkspaceScopedRequest, res, next) => {
   try {
+    const issueId = req.params.issueId as string;
+
     const result = await prisma.issue.deleteMany({
-      where: { id: req.params.issueId, workspaceId: req.workspaceId },
+      where: { id: issueId, workspaceId: req.workspaceId },
     });
 
     if (result.count === 0) throw new AppError("Issue not found", 404);
 
-    emitToWorkspace(req.workspaceId!, "issue:deleted", { id: req.params.issueId });
+    emitToWorkspace(req.workspaceId!, "issue:deleted", { id: issueId });
     res.json({ ok: true });
   } catch (err) {
     next(err);

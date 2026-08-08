@@ -134,7 +134,8 @@ workspacesRouter.post(
 // would be circular, since accepting the invite is what grants membership.
 workspacesRouter.post("/invites/:token/accept", requireAuth, async (req: AuthedRequest, res, next) => {
   try {
-    const invite = await prisma.invite.findUnique({ where: { token: req.params.token } });
+    const token = req.params.token as string;
+    const invite = await prisma.invite.findUnique({ where: { token } });
 
     if (!invite) throw new AppError("Invite not found", 404);
     if (invite.acceptedAt) throw new AppError("This invite has already been used", 409);
