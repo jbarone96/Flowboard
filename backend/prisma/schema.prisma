@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String            @id @default(uuid())
+  email        String            @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime          @default(now())
+
+  memberships  WorkspaceMember[]
+  createdIssues Issue[]          @relation("IssueCreator")
+  assignedIssues Issue[]         @relation("IssueAssignee")
+}
+
+model Workspace {
+  id        String            @id @default(uuid())
+  name      String
+  slug      String            @unique
+  createdAt DateTime          @default(now())
+
+  members   WorkspaceMember[]
+  issues    Issue[]
+  invites   Invite[]
+}
+
+// The join table between User and Workspace. This is deliberately its own
+// model rather than a workspaceId column on User — that would force a user
+// into exactly one workspace. This table is what lets a single user belong
+// to multiple workspaces, each with a different role.
+model WorkspaceMember {
+  id          String    @id @default(uuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId String
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  role        Role      @default(MEMBER)
+  joinedAt    DateTime  @default(now())
+
+  // A user can only have one membership record per workspace — prevents
+  // duplicate join rows if someone is invited twice, for example.
+  @@unique([workspaceId, userId])
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+model Issue {
+  id          String       @id @default(uuid())
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id])
+  workspaceId String
+  title       String
+  description String?
+  status      IssueStatus  @default(TODO)
+  priority    Priority     @default(MEDIUM)
+
+  assignee    User?        @relation("IssueAssignee", fields: [assigneeId], references: [id])
+  assigneeId  String?
+
+  creator     User         @relation("IssueCreator", fields: [creatorId], references: [id])
+  creatorId   String
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+enum IssueStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// A pending invite to join a workspace. Token-based, no real email sending
+// required for the MVP — the invite link itself carries the token.
+model Invite {
+  id          String    @id @default(uuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspaceId String
+  email       String
+  token       String    @unique @default(uuid())
+  role        Role      @default(MEMBER)
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+}
