@@ -13,7 +13,10 @@ export function Nav() {
 
   return (
     <nav className="nav">
-      <Link to="/" className="nav-brand">Flowboard</Link>
+      <Link to="/" className="nav-brand">
+        <img src="/favicon.svg" alt="" width="20" height="20" />
+        Flowboard
+      </Link>
       <div className="nav-links">
         {isLoggedIn ? (
           <>
