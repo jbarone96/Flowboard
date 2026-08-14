@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 
 export function Home() {
+  const isLoggedIn = !!localStorage.getItem("token");
+
   return (
     <div className="container">
       <div className="card" style={{ textAlign: "center" }}>
@@ -9,8 +11,8 @@ export function Home() {
           A shared issue tracker, built for teams — with real-time updates and
           proper workspace isolation.
         </p>
-        <Link to="/signup">
-          <button className="primary">Get started</button>
+        <Link to={isLoggedIn ? "/workspaces" : "/signup"}>
+          <button className="primary">{isLoggedIn ? "Go to your workspaces" : "Get started"}</button>
         </Link>
       </div>
 
