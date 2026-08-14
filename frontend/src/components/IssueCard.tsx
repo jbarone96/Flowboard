@@ -27,35 +27,56 @@ export function IssueCard({
   const [editingStatus, setEditingStatus] = useState(false);
   const [editingAssignee, setEditingAssignee] = useState(false);
 
-  const statusLabel = STATUSES.find((s) => s.status === issue.status)?.label ?? issue.status;
+  const statusLabel =
+    STATUSES.find((s) => s.status === issue.status)?.label ?? issue.status;
 
   return (
     <div className="issue-card" data-priority={issue.priority}>
       <p className="issue-title">{issue.title}</p>
 
       {editingAssignee ? (
-        <select
-          autoFocus
-          value={issue.assignee?.id ?? ""}
-          onChange={(e) => {
-            onAssigneeChange(e.target.value || null);
-            setEditingAssignee(false);
-          }}
-          onBlur={() => setEditingAssignee(false)}
-          style={{ marginBottom: 8 }}
-        >
-          <option value="">Unassigned</option>
-          {members.map((m) => (
-            <option key={m.user.id} value={m.user.id}>
-              {m.user.name}
-            </option>
-          ))}
-        </select>
+        <>
+          <select
+            autoFocus
+            value={issue.assignee?.id ?? ""}
+            onChange={(e) => {
+              const newAssigneeId = e.target.value || null;
+              if (newAssigneeId !== (issue.assignee?.id ?? null)) {
+                onAssigneeChange(newAssigneeId);
+              }
+              setEditingAssignee(false);
+            }}
+            onBlur={() => setEditingAssignee(false)}
+            style={{ marginBottom: members.length <= 1 ? 4 : 8 }}
+          >
+            <option value="">Unassigned</option>
+            {members.map((m) => (
+              <option key={m.user.id} value={m.user.id}>
+                {m.user.name}
+              </option>
+            ))}
+          </select>
+          {members.length <= 1 && (
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--ink-faint)",
+                margin: "0 0 8px",
+              }}
+            >
+              Invite a teammate to assign issues to them.
+            </p>
+          )}
+        </>
       ) : (
         <p
           className="issue-meta"
           onClick={() => setEditingAssignee(true)}
-          style={{ cursor: "pointer", textDecoration: "underline dotted", marginBottom: 8 }}
+          style={{
+            cursor: "pointer",
+            textDecoration: "underline dotted",
+            marginBottom: 8,
+          }}
         >
           {issue.assignee?.name ?? "Unassigned"}
         </p>
@@ -66,7 +87,10 @@ export function IssueCard({
           autoFocus
           value={issue.priority}
           onChange={(e) => {
-            onPriorityChange(e.target.value as Issue["priority"]);
+            const newPriority = e.target.value as Issue["priority"];
+            if (newPriority !== issue.priority) {
+              onPriorityChange(newPriority);
+            }
             setEditingPriority(false);
           }}
           onBlur={() => setEditingPriority(false)}
@@ -82,7 +106,11 @@ export function IssueCard({
         <p
           className="issue-meta"
           onClick={() => setEditingPriority(true)}
-          style={{ cursor: "pointer", textDecoration: "underline dotted", marginBottom: 8 }}
+          style={{
+            cursor: "pointer",
+            textDecoration: "underline dotted",
+            marginBottom: 8,
+          }}
         >
           {issue.priority}
         </p>
@@ -93,7 +121,10 @@ export function IssueCard({
           autoFocus
           value={issue.status}
           onChange={(e) => {
-            onStatusChange(e.target.value as Issue["status"]);
+            const newStatus = e.target.value as Issue["status"];
+            if (newStatus !== issue.status) {
+              onStatusChange(newStatus);
+            }
             setEditingStatus(false);
           }}
           onBlur={() => setEditingStatus(false)}
@@ -108,7 +139,11 @@ export function IssueCard({
         <p
           className="issue-meta"
           onClick={() => setEditingStatus(true)}
-          style={{ cursor: "pointer", textDecoration: "underline dotted", margin: 0 }}
+          style={{
+            cursor: "pointer",
+            textDecoration: "underline dotted",
+            margin: 0,
+          }}
         >
           {statusLabel}
         </p>
