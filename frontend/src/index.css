@@ -243,3 +243,27 @@ button.danger:hover { background: var(--danger); color: #fff; }
   .tooltip { animation: none; }
   .live-dot { animation: none; }
 }
+/* ===== Custom dropdown (replaces native <select> for click-to-edit fields) ===== */
+.dropdown {
+  position: relative;
+}
+.dropdown-menu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(20, 23, 31, 0.12);
+  min-width: 140px;
+  overflow: hidden;
+}
+.dropdown-option {
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.dropdown-option:hover {
+  background: var(--teal-soft);
+}
