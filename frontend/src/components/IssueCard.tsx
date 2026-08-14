@@ -15,9 +15,13 @@ interface IssueCardProps {
 }
 
 export function IssueCard({ issue, onStatusChange, onPriorityChange }: IssueCardProps) {
-  // Local to this card only — editing one issue's priority doesn't affect
-  // any other card, so this doesn't need to live in Board's state at all.
+  // Each of these is local to this one card — editing one issue's status
+  // or priority doesn't affect any other card, so neither needs to live
+  // in Board's state.
   const [editingPriority, setEditingPriority] = useState(false);
+  const [editingStatus, setEditingStatus] = useState(false);
+
+  const statusLabel = STATUSES.find((s) => s.status === issue.status)?.label ?? issue.status;
 
   return (
     <div className="issue-card" data-priority={issue.priority}>
@@ -51,13 +55,31 @@ export function IssueCard({ issue, onStatusChange, onPriorityChange }: IssueCard
         </p>
       )}
 
-      <select value={issue.status} onChange={(e) => onStatusChange(e.target.value as Issue["status"])}>
-        {STATUSES.map((s) => (
-          <option key={s.status} value={s.status}>
-            {s.label}
-          </option>
-        ))}
-      </select>
+      {editingStatus ? (
+        <select
+          autoFocus
+          value={issue.status}
+          onChange={(e) => {
+            onStatusChange(e.target.value as Issue["status"]);
+            setEditingStatus(false);
+          }}
+          onBlur={() => setEditingStatus(false)}
+        >
+          {STATUSES.map((s) => (
+            <option key={s.status} value={s.status}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <p
+          className="issue-meta"
+          onClick={() => setEditingStatus(true)}
+          style={{ cursor: "pointer", textDecoration: "underline dotted", margin: 0 }}
+        >
+          {statusLabel}
+        </p>
+      )}
     </div>
   );
 }
