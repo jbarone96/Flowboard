@@ -10,6 +10,8 @@ const COLUMNS: { status: Issue["status"]; label: string }[] = [
   { status: "DONE", label: "Done" },
 ];
 
+const PRIORITIES: Issue["priority"][] = ["LOW", "MEDIUM", "HIGH", "URGENT"];
+
 export function Board() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
@@ -18,6 +20,7 @@ export function Board() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
+  const [newPriority, setNewPriority] = useState<Issue["priority"]>("MEDIUM");
   const [connected, setConnected] = useState(() => getSocket().connected);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLink, setInviteLink] = useState<string | null>(null);
@@ -81,8 +84,9 @@ export function Board() {
   async function handleCreateIssue() {
     if (!newTitle.trim() || !workspaceId) return;
     try {
-      await api.createIssue(workspaceId, { title: newTitle.trim() });
+      await api.createIssue(workspaceId, { title: newTitle.trim(), priority: newPriority });
       setNewTitle("");
+      setNewPriority("MEDIUM");
     } catch (err) {
       if (err instanceof Error) setError(err.message);
     }
@@ -92,6 +96,15 @@ export function Board() {
     if (!workspaceId) return;
     try {
       await api.updateIssue(workspaceId, issue.id, { status });
+    } catch (err) {
+      if (err instanceof Error) setError(err.message);
+    }
+  }
+
+  async function handlePriorityChange(issue: Issue, priority: Issue["priority"]) {
+    if (!workspaceId) return;
+    try {
+      await api.updateIssue(workspaceId, issue.id, { priority });
     } catch (err) {
       if (err instanceof Error) setError(err.message);
     }
@@ -164,6 +177,13 @@ export function Board() {
             if (e.key === "Enter") handleCreateIssue();
           }}
         />
+        <select value={newPriority} onChange={(e) => setNewPriority(e.target.value as Issue["priority"])}>
+          {PRIORITIES.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </select>
         <button className="primary" onClick={handleCreateIssue} disabled={!newTitle.trim()}>
           Add issue
         </button>
@@ -180,9 +200,20 @@ export function Board() {
               {columnIssues.map((issue) => (
                 <div key={issue.id} className="issue-card" data-priority={issue.priority}>
                   <p className="issue-title">{issue.title}</p>
-                  <p className="issue-meta">
-                    {issue.priority} · {issue.assignee?.name ?? "Unassigned"}
-                  </p>
+                  <p className="issue-meta">{issue.assignee?.name ?? "Unassigned"}</p>
+
+                  <select
+                    value={issue.priority}
+                    onChange={(e) => handlePriorityChange(issue, e.target.value as Issue["priority"])}
+                    style={{ marginBottom: 8 }}
+                  >
+                    {PRIORITIES.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+
                   <select
                     value={issue.status}
                     onChange={(e) => handleStatusChange(issue, e.target.value as Issue["status"])}
