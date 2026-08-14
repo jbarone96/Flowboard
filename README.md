@@ -5,7 +5,7 @@ workspace's data fully isolated from every other workspace, and syncing
 changes live across everyone viewing the same board — without either one
 compromising the other.
 
-**Live demo:** _add your deployed URL here_
+**Live demo:** https://flowboard-two-zeta.vercel.app/
 
 ## Why I built this
 
@@ -16,6 +16,17 @@ and making real-time updates respect that same boundary instead of
 broadcasting everything to everyone. Those two problems — and a genuine bug
 I found and fixed while building the second one — are the actual point of
 this project.
+
+## Features
+
+- Multi-tenant workspaces with role-based membership (Admin / Member)
+- A kanban board (Todo / In Progress / Done) scoped to each workspace
+- Real-time sync — issue creation, status, priority, and assignee changes
+  appear live for everyone viewing the same board, no refresh
+- Assign issues to teammates from a workspace's member list
+- Token-based invite links (admin-only), with a redirect flow that carries
+  someone through signup and straight into the workspace they were invited to
+- Priority-colored issue cards (a git-diff-marker-style left edge)
 
 ## Stack
 
@@ -31,7 +42,9 @@ Issue cards use a colored left edge to signal priority — a git-diff-marker
 visual language, deliberately reading as a tool built by someone who thinks
 like an engineer. A pulsing green "Live" badge appears only while the
 WebSocket connection is actually active, so its presence always means
-exactly one thing. Built around Space Grotesk and JetBrains Mono.
+exactly one thing. Assignee, priority, and status each collapse to plain
+labeled text at rest, expanding into a small custom dropdown on click.
+Built around Space Grotesk and JetBrains Mono.
 
 ## Architecture decisions
 
@@ -72,6 +85,18 @@ proper nested sub-router of `workspacesRouter`, using Express's
 `mergeParams: true` option — the standard, documented mechanism for handing
 a parent route's params down to a child router — rather than relying on
 `app.use()`'s inline path-matching to do it implicitly.
+
+### Another real bug: native `<select>` doesn't always fire `onChange`
+
+Issue cards originally used native `<select>` elements for editing status,
+priority, and assignee. Re-selecting the value that was already chosen
+doesn't fire `onChange` (no value changed) — and critically, it also
+doesn't fire `onBlur`, since focus never leaves the element. With neither
+event firing, there was no reliable way to collapse the field back to
+text. The fix was a small custom `Dropdown` component
+(`frontend/src/components/Dropdown.tsx`) where every option is a real
+`onClick`, closing the menu deterministically regardless of whether the
+selected value actually changed.
 
 ### Workspace creation happens inside a database transaction
 
@@ -134,13 +159,15 @@ cd backend
 npm test
 ```
 
+Covers the pure workspace-slug generation logic (uniqueness suffix,
+special-character handling, whitespace trimming).
+
 ## Deployment notes
 
-- **Frontend:** deploy `frontend/` to Vercel; set `VITE_API_URL` to your
-  deployed backend URL.
-- **Backend:** deploy `backend/` to Railway or Render; set all `.env`
-  variables in the platform's environment config, and make sure
-  `FRONTEND_URL` matches your deployed frontend's origin (used for both
-  CORS and the Socket.io handshake's allowed origin).
-- **Database:** point `DATABASE_URL` at a managed Postgres instance and run
-  `npx prisma migrate deploy`.
+- **Frontend:** deployed to Vercel; `VITE_API_URL` points at the Railway
+  backend.
+- **Backend:** deployed to Railway, alongside a managed Postgres instance;
+  `FRONTEND_URL` is set to the Vercel origin (used for both CORS and the
+  Socket.io handshake's allowed origin).
+- **Database:** Postgres, migrated with `npx prisma migrate deploy` on
+  every deploy.
