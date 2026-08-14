@@ -36,7 +36,11 @@ export function Board() {
     }
     if (!workspaceId) return;
 
-    Promise.all([api.getWorkspace(workspaceId), api.getIssues(workspaceId), api.getMembers(workspaceId)])
+    Promise.all([
+      api.getWorkspace(workspaceId),
+      api.getIssues(workspaceId),
+      api.getMembers(workspaceId),
+    ])
       .then(([wsRes, issuesRes, membersRes]) => {
         setWorkspace(wsRes.workspace);
         setRole(wsRes.role);
@@ -59,7 +63,9 @@ export function Board() {
       setConnected(false);
     }
     function onCreated(issue: Issue) {
-      setIssues((prev) => (prev.some((i) => i.id === issue.id) ? prev : [issue, ...prev]));
+      setIssues((prev) =>
+        prev.some((i) => i.id === issue.id) ? prev : [issue, ...prev],
+      );
     }
     function onUpdated(issue: Issue) {
       setIssues((prev) => prev.map((i) => (i.id === issue.id ? issue : i)));
@@ -87,7 +93,10 @@ export function Board() {
   async function handleCreateIssue() {
     if (!newTitle.trim() || !workspaceId) return;
     try {
-      await api.createIssue(workspaceId, { title: newTitle.trim(), priority: newPriority });
+      await api.createIssue(workspaceId, {
+        title: newTitle.trim(),
+        priority: newPriority,
+      });
       setNewTitle("");
       setNewPriority("MEDIUM");
     } catch (err) {
@@ -104,7 +113,10 @@ export function Board() {
     }
   }
 
-  async function handlePriorityChange(issue: Issue, priority: Issue["priority"]) {
+  async function handlePriorityChange(
+    issue: Issue,
+    priority: Issue["priority"],
+  ) {
     if (!workspaceId) return;
     try {
       await api.updateIssue(workspaceId, issue.id, { priority });
@@ -125,7 +137,11 @@ export function Board() {
   async function handleInvite() {
     if (!inviteEmail.trim() || !workspaceId) return;
     try {
-      const res = await api.createInvite(workspaceId, inviteEmail.trim(), "MEMBER");
+      const res = await api.createInvite(
+        workspaceId,
+        inviteEmail.trim(),
+        "MEMBER",
+      );
       setInviteLink(`${window.location.origin}${res.inviteLink}`);
       setInviteEmail("");
     } catch (err) {
@@ -139,7 +155,13 @@ export function Board() {
 
   return (
     <div className="container" style={{ maxWidth: 960 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <h1 style={{ marginBottom: 4 }}>{workspace?.name}</h1>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           {connected && (
@@ -151,7 +173,11 @@ export function Board() {
           {role === "ADMIN" && (
             <button
               className="nav-button"
-              style={{ width: "auto", color: "var(--teal)", borderColor: "var(--teal)" }}
+              style={{
+                width: "auto",
+                color: "var(--teal)",
+                borderColor: "var(--teal)",
+              }}
               onClick={() => setShowInvite((v) => !v)}
             >
               Invite teammate
@@ -169,11 +195,21 @@ export function Board() {
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
           />
-          <button className="primary" onClick={handleInvite} disabled={!inviteEmail.trim()}>
+          <button
+            className="primary"
+            onClick={handleInvite}
+            disabled={!inviteEmail.trim()}
+          >
             Generate invite link
           </button>
           {inviteLink && (
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: 13, wordBreak: "break-all" }}>
+            <p
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 13,
+                wordBreak: "break-all",
+              }}
+            >
               {inviteLink}
             </p>
           )}
@@ -189,23 +225,40 @@ export function Board() {
             if (e.key === "Enter") handleCreateIssue();
           }}
         />
-        <select value={newPriority} onChange={(e) => setNewPriority(e.target.value as Issue["priority"])}>
+        <select
+          value={newPriority}
+          onChange={(e) => setNewPriority(e.target.value as Issue["priority"])}
+        >
           {PRIORITIES.map((p) => (
             <option key={p} value={p}>
-              {p}
+              {p.charAt(0) + p.slice(1).toLowerCase()}
             </option>
           ))}
         </select>
-        <button className="primary" onClick={handleCreateIssue} disabled={!newTitle.trim()}>
+        <button
+          className="primary"
+          onClick={handleCreateIssue}
+          disabled={!newTitle.trim()}
+        >
           Add issue
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 16,
+        }}
+      >
         {COLUMNS.map((col) => {
           const columnIssues = issues.filter((i) => i.status === col.status);
           return (
-            <div key={col.status} className="board-column" data-status={col.status}>
+            <div
+              key={col.status}
+              className="board-column"
+              data-status={col.status}
+            >
               <h3>
                 {col.label} · {columnIssues.length}
               </h3>
@@ -215,8 +268,12 @@ export function Board() {
                   issue={issue}
                   members={members}
                   onStatusChange={(status) => handleStatusChange(issue, status)}
-                  onPriorityChange={(priority) => handlePriorityChange(issue, priority)}
-                  onAssigneeChange={(assigneeId) => handleAssigneeChange(issue, assigneeId)}
+                  onPriorityChange={(priority) =>
+                    handlePriorityChange(issue, priority)
+                  }
+                  onAssigneeChange={(assigneeId) =>
+                    handleAssigneeChange(issue, assigneeId)
+                  }
                 />
               ))}
             </div>
