@@ -246,10 +246,31 @@ button.danger:hover { background: var(--danger); color: #fff; }
 /* ===== Custom dropdown (replaces native <select> for click-to-edit fields) ===== */
 .dropdown {
   position: relative;
+  margin-bottom: 12px;
+}
+.field-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  margin: 0 0 2px;
+}
+.dropdown-trigger {
+  font-size: 13px;
+  color: var(--ink);
+  margin: 0;
+  cursor: pointer;
+  display: inline-block;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.12s ease;
+}
+.dropdown-trigger:hover {
+  border-bottom-color: var(--ink-faint);
 }
 .dropdown-menu {
   position: absolute;
-  top: 0;
+  top: 100%;
   left: 0;
   z-index: 20;
   background: var(--paper-raised);
@@ -258,6 +279,7 @@ button.danger:hover { background: var(--danger); color: #fff; }
   box-shadow: 0 4px 12px rgba(20, 23, 31, 0.12);
   min-width: 140px;
   overflow: hidden;
+  margin-top: 4px;
 }
 .dropdown-option {
   padding: 8px 12px;

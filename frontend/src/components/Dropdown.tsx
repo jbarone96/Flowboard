@@ -6,21 +6,13 @@ interface DropdownOption {
 }
 
 interface DropdownProps {
+  label: string;
   options: DropdownOption[];
   displayLabel: string;
   onSelect: (value: string) => void;
 }
 
-/**
- * A minimal custom dropdown, used in place of a native <select> specifically
- * because native selects don't fire onChange when re-selecting the value
- * that's already chosen, and don't fire onBlur when a picked option closes
- * the dropdown while keeping focus on the same element. Both of those gaps
- * made it impossible to reliably collapse a native select back to text.
- * A fully custom menu, where every option click is a real onClick we
- * control, closes correctly in every case.
- */
-export function Dropdown({ options, displayLabel, onSelect }: DropdownProps) {
+export function Dropdown({ label, options, displayLabel, onSelect }: DropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -36,11 +28,8 @@ export function Dropdown({ options, displayLabel, onSelect }: DropdownProps) {
 
   return (
     <div className="dropdown" ref={ref}>
-      <p
-        className="issue-meta"
-        onClick={() => setOpen((o) => !o)}
-        style={{ cursor: "pointer", textDecoration: "underline dotted", marginBottom: 8 }}
-      >
+      <p className="field-label">{label}</p>
+      <p className="dropdown-trigger" onClick={() => setOpen((o) => !o)}>
         {displayLabel}
       </p>
       {open && (

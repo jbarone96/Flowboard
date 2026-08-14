@@ -8,6 +8,10 @@ const STATUSES: { status: Issue["status"]; label: string }[] = [
   { status: "DONE", label: "Done" },
 ];
 
+function toTitleCase(s: string) {
+  return s.charAt(0) + s.slice(1).toLowerCase();
+}
+
 interface IssueCardProps {
   issue: Issue;
   members: WorkspaceMember[];
@@ -35,23 +39,26 @@ export function IssueCard({
       <p className="issue-title">{issue.title}</p>
 
       <Dropdown
+        label="Assignee"
         options={assigneeOptions}
         displayLabel={issue.assignee?.name ?? "Unassigned"}
         onSelect={(value) => onAssigneeChange(value || null)}
       />
       {members.length <= 1 && (
-        <p style={{ fontSize: 12, color: "var(--ink-faint)", margin: "-4px 0 8px" }}>
+        <p style={{ fontSize: 12, color: "var(--ink-faint)", margin: "-6px 0 12px" }}>
           Invite a teammate to assign issues to them.
         </p>
       )}
 
       <Dropdown
-        options={PRIORITIES.map((p) => ({ value: p, label: p }))}
-        displayLabel={issue.priority}
+        label="Priority"
+        options={PRIORITIES.map((p) => ({ value: p, label: toTitleCase(p) }))}
+        displayLabel={toTitleCase(issue.priority)}
         onSelect={(value) => onPriorityChange(value as Issue["priority"])}
       />
 
       <Dropdown
+        label="Status"
         options={STATUSES.map((s) => ({ value: s.status, label: s.label }))}
         displayLabel={statusLabel}
         onSelect={(value) => onStatusChange(value as Issue["status"])}
