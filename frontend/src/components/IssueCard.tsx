@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Issue } from "../api";
+import type { Issue, WorkspaceMember } from "../api";
 
 const PRIORITIES: Issue["priority"][] = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 const STATUSES: { status: Issue["status"]; label: string }[] = [
@@ -10,23 +10,56 @@ const STATUSES: { status: Issue["status"]; label: string }[] = [
 
 interface IssueCardProps {
   issue: Issue;
+  members: WorkspaceMember[];
   onStatusChange: (status: Issue["status"]) => void;
   onPriorityChange: (priority: Issue["priority"]) => void;
+  onAssigneeChange: (assigneeId: string | null) => void;
 }
 
-export function IssueCard({ issue, onStatusChange, onPriorityChange }: IssueCardProps) {
-  // Each of these is local to this one card — editing one issue's status
-  // or priority doesn't affect any other card, so neither needs to live
-  // in Board's state.
+export function IssueCard({
+  issue,
+  members,
+  onStatusChange,
+  onPriorityChange,
+  onAssigneeChange,
+}: IssueCardProps) {
   const [editingPriority, setEditingPriority] = useState(false);
   const [editingStatus, setEditingStatus] = useState(false);
+  const [editingAssignee, setEditingAssignee] = useState(false);
 
   const statusLabel = STATUSES.find((s) => s.status === issue.status)?.label ?? issue.status;
 
   return (
     <div className="issue-card" data-priority={issue.priority}>
       <p className="issue-title">{issue.title}</p>
-      <p className="issue-meta">{issue.assignee?.name ?? "Unassigned"}</p>
+
+      {editingAssignee ? (
+        <select
+          autoFocus
+          value={issue.assignee?.id ?? ""}
+          onChange={(e) => {
+            onAssigneeChange(e.target.value || null);
+            setEditingAssignee(false);
+          }}
+          onBlur={() => setEditingAssignee(false)}
+          style={{ marginBottom: 8 }}
+        >
+          <option value="">Unassigned</option>
+          {members.map((m) => (
+            <option key={m.user.id} value={m.user.id}>
+              {m.user.name}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <p
+          className="issue-meta"
+          onClick={() => setEditingAssignee(true)}
+          style={{ cursor: "pointer", textDecoration: "underline dotted", marginBottom: 8 }}
+        >
+          {issue.assignee?.name ?? "Unassigned"}
+        </p>
+      )}
 
       {editingPriority ? (
         <select
