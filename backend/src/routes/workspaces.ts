@@ -9,23 +9,13 @@ import {
   WorkspaceScopedRequest,
 } from "../middleware/requireWorkspaceMember";
 import { issuesRouter } from "./issues";
+import { slugify } from "../slug";
 
 export const workspacesRouter = Router();
 
 const createWorkspaceSchema = z.object({
   name: z.string().min(1).max(100),
 });
-
-function slugify(name: string) {
-  return (
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "") +
-    "-" +
-    Math.random().toString(36).slice(2, 6)
-  );
-}
 
 // Create a workspace. The creator is automatically added as ADMIN — this
 // happens inside a transaction so we never end up with a workspace that
