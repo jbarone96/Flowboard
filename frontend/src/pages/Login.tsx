@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api";
+import { setToken } from "../auth";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -15,7 +16,7 @@ export function Login() {
     setSubmitting(true);
     try {
       const res = await api.login(email, password);
-      localStorage.setItem("token", res.token);
+      setToken(res.token);
       const redirect = searchParams.get("redirect");
       navigate(redirect ?? "/workspaces");
     } catch (err) {

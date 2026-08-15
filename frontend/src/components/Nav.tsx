@@ -1,13 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
+import { clearToken } from "../auth";
+import { useIsLoggedIn } from "../hooks/useIsLoggedIn";
 import { disconnectSocket } from "../socket";
 
 export function Nav() {
   const navigate = useNavigate();
-  const isLoggedIn = !!localStorage.getItem("token");
+  const isLoggedIn = useIsLoggedIn();
 
   function handleLogout() {
     disconnectSocket();
-    localStorage.removeItem("token");
+    clearToken();
     navigate("/");
   }
 

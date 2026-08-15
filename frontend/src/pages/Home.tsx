@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
+import { useIsLoggedIn } from "../hooks/useIsLoggedIn";
 
 export function Home() {
-  const isLoggedIn = !!localStorage.getItem("token");
+  const isLoggedIn = useIsLoggedIn();
 
   return (
     <div className="container">
